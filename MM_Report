@@ -1,0 +1,16 @@
+[WEEK 1]
+
+//-----MAKEFILE-----//
+
+- dlib DOESN'T BUILD lib => add /dlib/all/source.cpp in sources
+- For faster speed => enable -msse2 -msse4.1 -msse4.2 (sse2 recommended due to hardware compatibility)
+- Further detail in makefile
+
+//-----DEMO-----//
+
+[DONE] - Test image landmark processing
+[DONE] - Research lib to extract frames from video: opencv with ffmpeg lib
+	+ Include `pkg-config opencv --cflags --libs` when build
+[DONE] - Convert image sequence to video
+	* RAM management
+- Upgrade image landmark processing from video
