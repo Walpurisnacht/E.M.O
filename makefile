@@ -9,8 +9,8 @@ SRCEXT := cc
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 SOURCES += /usr/include/dlib/all/source.cpp
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -ggdb -Wall -DDEBUG -DDLIB_NO_GUI_SUPPORT -msse2
-LIB := -lpthread -lX11
+CFLAGS := -ggdb -Wall -DDEBUG -msse2
+LIB := -lpthread -lX11 
 INC := -I /usr/include/
 
 $(TARGET): $(OBJECTS)

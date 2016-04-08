@@ -13,4 +13,10 @@
 	+ Include `pkg-config opencv --cflags --libs` when build
 [DONE] - Convert image sequence to video
 	* RAM management
+	- g++ -g -std=c++11 -Wall -DDEBUG -DDLIB_JPEG_SUPPORT -msse2 -I /usr/include extract_frames.cc /usr/include/dlib/all/source.cpp -o test `pkg-config opencv --cflags --libs` -lpthread -lX11 -ljpeg
+
 - Upgrade image landmark processing from video
+
+//-----COLLECT DATA APP-----//
+- g++ -O3 -I /usr/include/ /usr/include/dlib/all/source.cpp -lpthread -lX11 -ljpeg landmark.cc -DDLIB_JPEG_SUPPORT
+- Complete cropping landmark from dataset + list of landmark location
