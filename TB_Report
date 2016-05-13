@@ -1,0 +1,5 @@
+...
+[WEEK4]
+//-----Features Engineering-----//
+
+-Wrote script python3.4 for calculating features(13) but results (*.csv) had a problem (infinite value and non-value)

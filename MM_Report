@@ -1,5 +1,3 @@
-[WEEK 1]
-
 //-----MAKEFILE-----//
 
 - dlib DOESN'T BUILD lib => add /dlib/all/source.cpp in sources
@@ -15,8 +13,17 @@
 	* RAM management
 	- g++ -g -std=c++11 -Wall -DDEBUG -DDLIB_JPEG_SUPPORT -msse2 -I /usr/include extract_frames.cc /usr/include/dlib/all/source.cpp -o test `pkg-config opencv --cflags --libs` -lpthread -lX11 -ljpeg
 
-- Upgrade image landmark processing from video
+[DONE] - Upgrade image landmark processing from video
 
 //-----COLLECT DATA APP-----//
 - g++ -O3 -I /usr/include/ /usr/include/dlib/all/source.cpp -lpthread -lX11 -ljpeg landmark.cc -DDLIB_JPEG_SUPPORT
-- Complete cropping landmark from dataset + list of landmark location
+[DONE] - Crop landmark from dataset + list of landmark location
+
+UIT-VIP 20152605
+
+//-----IMG PROCESS-----//
+[DONE] - Rotate img by balancing point 32 & 36
+- Encountered problem in calculating new point coordinate
+
+//-----MACHINE LEARNING-----//
+- Parsing csv file to std::vector
