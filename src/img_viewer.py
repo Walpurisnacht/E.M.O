@@ -66,5 +66,5 @@ for i in range(len(limg)):
     cv2.line(img, traw[60], traw[67], (0,255,0), 1)
     
     cv2.imshow("Image",img)
-    cv2.waitKey(100)
+    cv2.waitKey(200)
     cv2.destroyAllWindows()
