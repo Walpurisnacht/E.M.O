@@ -102,6 +102,12 @@ int main(int argc, char** argv)
                 cout << "number of parts: "<< shape.num_parts() << endl;
                 cout << "pixel position of first part:  " << shape.part(0) << endl;
                 cout << "pixel position of second part: " << shape.part(1) << endl;
+				dlib::point pts = shape.part(0);
+				cout << "dlib::point " << pts.x() << " " << pts.y() << endl;
+				long x = pts.x();
+				long y = pts.y();
+				cout << "Pts: " << x << " " << y << endl;
+				
                 // You get the idea, you can get all the face part locations if
                 // you want them.  Here we just store them in shapes so we can
                 // put them on the screen.

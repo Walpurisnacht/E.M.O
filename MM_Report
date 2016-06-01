@@ -19,11 +19,17 @@
 - g++ -O3 -I /usr/include/ /usr/include/dlib/all/source.cpp -lpthread -lX11 -ljpeg landmark.cc -DDLIB_JPEG_SUPPORT
 [DONE] - Crop landmark from dataset + list of landmark location
 
-UIT-VIP 20152605
-
 //-----IMG PROCESS-----//
 [DONE] - Rotate img by balancing point 32 & 36
-- Encountered problem in calculating new point coordinate
+[DONE] - Encountered problem in calculating new point coordinate
 
-//-----MACHINE LEARNING-----//
-- Parsing csv file to std::vector
+//-----APP-----//
+- Lib used: opencv (img processing), dlib (facial landmark), libsvm (prediction)
+- Feature calculator C++
+- Import libsvm model
+- Test run (img -> vid -> cam)
+[DOING] - Build cmd
+
+//-----LIBSVM-----//
+[DONE] - Include svm source code (solution: object file?) = static library
+[SWITCH] - struct svm_node for building data for prediction
