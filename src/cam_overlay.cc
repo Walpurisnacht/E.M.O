@@ -4,36 +4,13 @@
 #include <dlib/image_processing/render_face_detections.h>
 #include <dlib/image_processing.h>
 #include <dlib/gui_widgets.h>
-#include <unistd.h>
-#include <termios.h>
-
+#include <ctime>
+#include "feature_calculator.h"
+#include "svm.h"
 
 using namespace std;
 using namespace dlib;
 
-char getch(){
-    /*#include <unistd.h>   //_getch*/
-    /*#include <termios.h>  //_getch*/
-    char buf=0;
-    struct termios old={0};
-    fflush(stdout);
-    if(tcgetattr(0, &old)<0)
-        perror("tcsetattr()");
-    old.c_lflag&=~ICANON;
-    old.c_lflag&=~ECHO;
-    old.c_cc[VMIN]=1;
-    old.c_cc[VTIME]=0;
-    if(tcsetattr(0, TCSANOW, &old)<0)
-        perror("tcsetattr ICANON");
-    if(read(0,&buf,1)<0)
-        perror("read()");
-    old.c_lflag|=ICANON;
-    old.c_lflag|=ECHO;
-    if(tcsetattr(0, TCSADRAIN, &old)<0)
-        perror ("tcsetattr ~ICANON");
-    //printf("%c\n",buf);
-    return buf;
- }
 
 void overlayImage(const cv::Mat &background, const cv::Mat &foreground, 
   cv::Mat &output, cv::Point2i location)
@@ -84,29 +61,88 @@ void overlayImage(const cv::Mat &background, const cv::Mat &foreground,
   }
 }
 
-int main()
+int main(int argc, char** argv)
 {
 	try
 	{
+		if (argc == 1)
+		{
+			cout << "Call this program like this:" << endl;
+			cout << "[app] [face model] [svm model] [neutral.csv]" << endl;
+			return 0;
+		}
+		
 		cv::VideoCapture cap(0);
 		image_window win;
+		
+		// Load face detection and pose estimation models.
+        frontal_face_detector detector = get_frontal_face_detector();
+        shape_predictor pose_model;
+        deserialize(argv[1]) >> pose_model;
+		
+		// Load SVM model
+		struct svm_model* model = svm_load_model(argv[2]);
 		
 		while (!win.is_closed())
 		{
 			cv::Mat temp;
 			cap >> temp;
 			
-			cv::Mat layer = cv::imread("sad.png",1);
-			//layer.copyTo(temp(cv::Rect(0,0,layer.cols,layer.rows)));
+			//cv::Mat layer = cv::imread("sad.png",1);
 			
-			overlayImage(temp, layer, temp, cv::Point(0,0));
+			//overlayImage(temp, layer, temp, cv::Point(0,0));
 			
 			cv_image<bgr_pixel> cimg(temp);
 			
+			// Detect faces 
+            std::vector<rectangle> faces = detector(cimg);
+            // Find the pose of each face.
+            std::vector<full_object_detection> shapes;
+            for (unsigned long i = 0; i < faces.size(); ++i)
+                shapes.push_back(pose_model(cimg, faces[i]));
+			
+			if (shapes.size() == 0)
+			{
+				win.clear_overlay();
+				win.set_image(cimg);
+			
+				win.add_overlay(render_face_detections(shapes));
+				continue;
+			}
+			//Feature calculator
+			std::vector<double> feature = feature_calculator(shapes[0],argv[3]);
+			
+			size_t n = feature.size()+1;
+			
+			//Node preparation
+			struct svm_node* node = new svm_node[n];
+			for (size_t i = 0; i < n; i++)
+			{
+				node[i].index = i+1;
+				node[i].value = feature[i];
+			}
+			node[n-1].index = -1;
+			
+			//Predict result + overlay cam
+			double result = svm_predict(model,node);
+			time_t now = time(0);
+			char* dt = ctime(&now);
+			std::cout << dt << " " << result << std::endl;
+			if (result == -1)
+				overlayImage(temp, cv::imread("sad.png",1), temp, cv::Point(0,0));
+			else if (result == 0)
+				overlayImage(temp, cv::imread("normal.png",1), temp, cv::Point(0,0));
+			else if (result == 1)
+				overlayImage(temp, cv::imread("smile.png",1), temp, cv::Point(0,0));
+			
 			win.clear_overlay();
 			win.set_image(cimg);
+			
+			win.add_overlay(render_face_detections(shapes));
 			//win.add_overlay(rectangle(0,0,0,0),rgb_pixel(255,0,0),"HELLO WORLD");
 		}
+								 
+		delete model;
 	}
 	catch(serialization_error& e)
     {

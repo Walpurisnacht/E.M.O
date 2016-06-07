@@ -28,8 +28,12 @@
 - Feature calculator C++
 - Import libsvm model
 - Test run (img -> vid -> cam)
-[DOING] - Build cmd
+[DONE] g++ -O3 -pg -g -std=c++11 -mavx -I /usr/include/ cam_overlay.cc feature_calculator.cc /usr/include/dlib/all/source.cpp /media/DATA/EMO/src/libsvm.a /usr/lib/libgtest.a /usr/lib/libgtest_main.a -o cam_overlay `pkg-config opencv --cflags --libs` -lpthread -lX11
 
 //-----LIBSVM-----//
 [DONE] - Include svm source code (solution: object file?) = static library
 [SWITCH] - struct svm_node for building data for prediction
+
+//-----GPROF-----//
+- Compile with -pg
+- Execute gprof [app] gmon.out > result.txt
