@@ -27,8 +27,9 @@
 - Lib used: opencv (img processing), dlib (facial landmark), libsvm (prediction)
 - Feature calculator C++
 - Import libsvm model
-- Test run (img -> vid -> cam)
-[DONE] g++ -O3 -pg -g -std=c++11 -mavx -I /usr/include/ cam_overlay.cc feature_calculator.cc /usr/include/dlib/all/source.cpp /media/DATA/EMO/src/libsvm.a /usr/lib/libgtest.a /usr/lib/libgtest_main.a -o cam_overlay `pkg-config opencv --cflags --libs` -lpthread -lX11
+[DONE] - Test run
+[DONE] g++ -pg -g -O3 -std=c++11 -mavx -DDLIB_JPEG_SUPPORT -I /usr/include/ cam_overlay.cc feature_calculator.cc img_proc.cc /usr/include/dlib/all/source.cpp libsvm.a -o cam_overlay `pkg-config opencv --cflags --libs` -lpthread -lX11 -ljpeg
+[BUG] ROI problem
 
 //-----LIBSVM-----//
 [DONE] - Include svm source code (solution: object file?) = static library

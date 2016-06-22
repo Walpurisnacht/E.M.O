@@ -28,7 +28,7 @@ void eccentricities_calculator(full_object_detection shape, std::vector<double> 
 //    pts3 = shape.part(54);
 //    result.push_back(eccentricity_calculator((pts3.x()-pts1.x())/2, (pts3.y()+pts1.y())/2 - pts2.y()))
     //res.append(eccentricity_calc((data[54][0]-data[48][0])/2, (data[54][1]+data[48][1])/2 - data[66][1]))
-    result.push_back(eccentricity_calculator((shape.part(54).x()-shape.part(48).x())/2, (shape.part(54).y()+shape.part(48).y())/2 - shape.part(51).y()));
+    result.push_back(eccentricity_calculator((shape.part(54).x()-shape.part(48).x())/2, (shape.part(54).y()+shape.part(48).y())/2 - shape.part(66).y()));
 
     //-----lower mouth 2-----//
 //    pts1 = shape.part(48);
