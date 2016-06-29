@@ -22,8 +22,6 @@ inline bool any_comp(dlib::point pts) { return (pts.x() < 0 || pts.y() < 0);}
 
 void cv_rotatePoint(float angle, dlib::full_object_detection &shape, cv::Mat rot_mat);
 
-//dlib::point rotatePoint(dlib::point pivot, float angle, dlib::point pts);
-
 void cv_render_face_detection(cv::Mat &src, dlib::full_object_detection shape);
 
 void cv_draw_arc(size_t start, size_t end, cv::Mat &src, dlib::full_object_detection shape);

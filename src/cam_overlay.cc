@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 			return 0;
 		}
 
-        // Set parameter for saving image
+        // Set parameter for saving image in recording mode
         std::vector<int> compression_params;
         compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);
         compression_params.push_back(100);
@@ -41,33 +41,19 @@ int main(int argc, char** argv)
 			cv::Mat temp;
 			cap >> temp;
 
-//			cv::imshow("ORIGIN",temp);
-//			cv::waitKey(0);
-//			cv::destroyAllWindows();
-
-//            cout << "Cam res" << endl;
-//			cout << temp.cols << " " << temp.rows << endl;
-
-			//cv::Mat layer = cv::imread("sad.png",1);
-
-			//overlayImage(temp, layer, temp, cv::Point(0,0));
-
 			cv_image<bgr_pixel> cimg(temp);
 
 			// Detect faces
             std::vector<dlib::rectangle> faces = detector(cimg);
 
-//            cout << "Cam bounding box" << endl;
-//            cout << faces[0] << endl;
-
-            // Find the pose of ONE face.
+            // Find landmark of all face detected
             std::vector<full_object_detection> shapes;
-//            shapes.push_back(pose_model(cimg, faces[0]));
             for (unsigned long i = 0; i < faces.size(); ++i)
                 shapes.push_back(pose_model(cimg, faces[i]));
 
             std::vector<full_object_detection> view = shapes;
 
+			// Only view source without detection
 			if (shapes.size() == 0 || checkShape(shapes[0]))
 			{
 				win.clear_overlay();
@@ -76,124 +62,68 @@ int main(int argc, char** argv)
 				continue;
 			}
 
-			//win.clear_overlay();
-			//win.set_image(cimg);
+			// Record mode, bypass prediction
+//			if (argv[4][0] == '1' && shapes.size() != 0)
+//			{
+//				if (stat(argv[5],&st) == -1) {
+//                    cout << "rm stat = " << system("rm -r ./save/") << endl;
+//					mkdir(argv[5], 0700);
+//				}
+//				win.clear_overlay();
+//				win.set_image(cimg);
+//				imwrite(argv[5] + to_string(static_cast<long long>(cnt)) + ".jpg", temp, compression_params);
+//				cout << "Writing frame " << cnt << " to " << argv[5] << endl;
+//				cnt++;
+//
+//				continue;
+//			}
 
-			//Record mode, bypass prediction
-			if (argv[4][0] == '1' && shapes.size() != 0)
-			{
-				if (stat(argv[5],&st) == -1) {
-                    cout << "rm stat = " << system("rm -r ./save/") << endl;
-					mkdir(argv[5], 0700);
-				}
-				win.clear_overlay();
+			// Preprocess image
+            cv::Mat proc;
+            temp.copyTo(proc);
+
+			dlib::point mid(proc.cols/2, proc.rows/2);
+
+			// Create a new copy to process for predicting
+			full_object_detection shape = shapes[0];
+			float angle = getAngle(shape.part(31), shape.part(35));
+
+            // Rotate img with pivot as the center of image
+			cv::Mat rot_mat = rotateImg(proc, angle);
+
+            cv_rotatePoint(angle, shape, rot_mat);
+//            shapes[0] = shape;
+
+
+            // Crop face landmark
+			std::map<std::string,long> data;
+			if (!cropFace(proc, shape, data)) {
+                win.clear_overlay();
 				win.set_image(cimg);
-				imwrite(argv[5] + to_string(static_cast<long long>(cnt)) + ".jpg", temp, compression_params);
-				cout << "Writing frame " << cnt << " to " << argv[5] << endl;
-				cnt++;
-
+                printf("No face detected!\n");
 				continue;
 			}
 
-			//Preprocess image
-			cv::Mat proc = temp.clone();
-
-//			cv::imshow("TEMP",temp);
-//			cv::imshow("PROC",proc);
-//			cv::waitKey(0);
-//			cv::destroyAllWindows();
-
-			dlib::point mid(proc.cols/2, proc.rows/2);
-			full_object_detection shape = shapes[0];
-			float angle = getAngle(shape.part(31), shape.part(35));
-//			cout << "Angle " << angle << endl;
-
-            //Rotate img
-			cv::Mat rot_mat = rotateImg(proc, angle);
-
-//			cout << "Rotating..." << endl;
-
-            cv_rotatePoint(angle, shape, rot_mat);
-
-//            cv::imshow("TEMP_ROT",temp);
-//			cv::imshow("PROC_ROT",proc);
-//			cv::waitKey(0);
-//			cv::destroyAllWindows();
-
-            //Calc pts after rotate
-//			for (size_t i = 0; i < 68; i++) {
-                //shape.part(i) = rotatePoint(mid, -angle, shape.part(i));
-//                shape.part(i) = cv_rotatePoint(angle, shape.part(i), rot_mat);
-//                cout << "Point " << i << " " << shape.part(i) << endl;
-//            }
-            shapes[0] = shape;
-//            win.clear_overlay();
-//			win.set_image(cimg);
-//
-//			win.add_overlay(render_face_detections(shapes));
-//			continue;
-
-
-            //Crop face landmark
-			std::map<std::string,long> data;
-			if (!cropFace(proc, shape, data))
-                continue;
-
-//			cv::imshow("TEMP_CROP",temp);
-//			cv::imshow("PROC_CROP",proc);
-//			cv::imshow("FIX_CROP",proc);
-//			cv::waitKey(0);
-//			cv::destroyAllWindows();
-
-//			imwrite(argv[5] + to_string(static_cast<long long>(cnt)) + "_crop.jpg", fixed, compression_params);
-
-            //Resize image to width 100
+            // Resize image to 100 px wide
 			float rat = resizeImg(proc);
 
-			//Calc pts after resize
-//			cout << "Resizing..." << endl;
+			// Calculate landmark points after resized
 			for (size_t i = 0; i < 68; i++) {
                 shape.part(i).x() -= (data["x_min"] - 10);
                 shape.part(i).x() *= rat;
                 shape.part(i).y() -= (data["y_min"] - 10);
                 shape.part(i).y() *= rat;
-//                cout << "Point " << i << " " << shape.part(i) << endl;
 			}
 
+			// Redraw facial landmark on image
 			cv_render_face_detection(proc, shape);
 
-//			cout << "Processed!" << endl;
-
-//			cv::imshow("SRC_RES",temp);
-//			cv::imshow("PROC_RES",proc);
-//			cv::imshow("FIX_RES",fixed);
-//			cv::waitKey(0);
-//			cv::destroyAllWindows();
-
-			win.clear_overlay();
-			win.set_image(cimg);
-
-			win.add_overlay(render_face_detections(view));
-
-			//Save img
-//			if (stat(argv[5],&st) == -1) {
-//                cout << "rm stat = " << system("rm -r ./save/") << endl;
-//                mkdir(argv[5], 0700);
-//            }
-
-
-//            imwrite(argv[5] + to_string(static_cast<long long>(cnt)) + "_proc.jpg", fixed, compression_params);
-//            cout << "Writing frame " << cnt << " to " << argv[5] << endl;
-//            cnt++;
-//            continue;
-
-
-			//Feature calculator
+			// Feature calculator from processed landmarks
 			std::vector<double> feature = feature_calculator(shape,argv[3]);
 
 			size_t n = feature.size()+1;
 
-			//Node preparation
+			// Node preparation following libSVM format
 			struct svm_node* node = new svm_node[n];
 			for (size_t i = 0; i < n; i++)
 			{
@@ -207,6 +137,19 @@ int main(int argc, char** argv)
 			time_t now = time(0);
 			char* dt = ctime(&now);
 			std::cout << dt << " " << result << std::endl;
+
+			cv_render_face_detection(temp, shapes[0]);
+			if (argv[4][0] == '1') {
+                cv::VideoWriter outputVid;
+				cv::Size S = cv::Size((int) cap.get(CV_CAP_PROP_FRAME_WIDTH),
+				(int) cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+				int ex = static_cast<int>(cap.get(CV_CAP_PROP_FOURCC));
+				outputVid.open(argv[5], ex, cap.get(CV_CAP_PROP_FPS), S, true);
+				if (!outputVid.isOpened())
+                    continue;
+                outputVid << temp;
+            }
+
 			if (result == -1)
 				overlayImage(temp, cv::imread("sad.png",1), temp, cv::Point(0,0));
 			else if (result == 0)
@@ -217,8 +160,7 @@ int main(int argc, char** argv)
 			win.clear_overlay();
 			win.set_image(cimg);
 
-			win.add_overlay(render_face_detections(shapes));
-			//win.add_overlay(rectangle(0,0,0,0),rgb_pixel(255,0,0),"HELLO WORLD");
+//			win.add_overlay(render_face_detections(shapes));
 		}
 
 		delete model;

@@ -1,19 +1,6 @@
 #include "img_proc.h"
 
-//dlib::point rotatePoint(dlib::point pivot, float angle, dlib::point pts)
-//{
-//	float s = sin(angle);
-//	float c = cos(angle);
-//
-//	pts.x() -= pivot.x();
-//	pts.y() -= pivot.y();
-//
-//	float x1 = pts.x() * c - pts.y() * s;
-//	float y1 = pts.x() * s + pts.y() * c;
-//
-//	return dlib::point(x1+pivot.x(),y1+pivot.y());
-//}
-
+// Check if there is any negative value
 bool checkShape(dlib::full_object_detection shape)
 {
     std::vector<dlib::point> data;
@@ -22,12 +9,14 @@ bool checkShape(dlib::full_object_detection shape)
     return std::any_of(data.begin(), data.end(), any_comp);
 }
 
+// Calculate the point rotated by the rotation matrix
 void cv_rotatePoint(float angle, dlib::full_object_detection &shape, cv::Mat rot_mat)
 {
     for (size_t i = 0; i < 68; i++)
         shape.part(i) = dlib::point(rot_mat.at<double>(0,0)*shape.part(i).x() + rot_mat.at<double>(0,1)*shape.part(i).y() + rot_mat.at<double>(0,2), rot_mat.at<double>(1,0)*shape.part(i).x() + rot_mat.at<double>(1,1)*shape.part(i).y() + rot_mat.at<double>(1,2));
 }
 
+// Rotate the image, returning its rotation matrix
 cv::Mat rotateImg(cv::Mat &src, float angle)
 {
     cv::Mat rot_mat = cv::getRotationMatrix2D(cv::Point(src.cols/2,src.rows/2), angle, 1.0);
@@ -35,12 +24,14 @@ cv::Mat rotateImg(cv::Mat &src, float angle)
     return rot_mat;
 }
 
+// Calculate the angle between 2 points
 float getAngle(dlib::point p0, dlib::point p1)
 {
     dlib::point delta(p1.x()-p0.x(),p1.y()-p0.y());
     return (std::atan2(delta.y(),delta.x())*180)/(std::atan(1)*4);
 }
 
+// Extract data from dlib::full_object_detection
 std::vector<long> getVector(dlib::full_object_detection shape, bool x)
 {
     std::vector<long> data;
@@ -54,42 +45,38 @@ std::vector<long> getVector(dlib::full_object_detection shape, bool x)
     return data;
 }
 
+// Crop the image based on landmark position, returning validation for processing further
 bool cropFace(cv::Mat &src, dlib::full_object_detection shape, std::map<std::string,long> &data)
 {
     std::vector<long> x = getVector(shape, true);
     std::vector<long> y = getVector(shape, false);
-
-//    for (size_t i = 0; i < 68; i++)
-//        cout << "Point " << i << " " << shape.part(i) << endl;
 
     long x_max = *std::max_element(x.begin(), x.end(), comp);
     long x_min = *std::min_element(x.begin(), x.end(), comp);
     long y_max = *std::max_element(y.begin(), y.end(), comp);
     long y_min = *std::min_element(y.begin(), y.end(), comp);
 
-//    cout << "Source bounding box" << endl;
-//    printf("%ld %ld %ld %ld\n",x_max,y_max,x_min,y_min);
-
     if (checkShape(shape))
         return false;
 
-//    cout << "Dimension ";
+	// Calculate Region of Interest with an offset of 10 px
+    cv::Rect ROI(x_min-10,y_min-10,x_max-x_min+20,y_max-y_min+20);
 
+	// Bounding condition for preventing throw exception
+    if (ROI.x >= 0 && ROI.y >= 0 && ROI.width + ROI.x < src.cols && ROI.height + ROI.y < src.rows) {
+        src = src(ROI);
 
+        data["x_max"] = x_max;
+        data["y_max"] = y_max;
+        data["x_min"] = x_min;
+        data["y_min"] = y_min;
 
-    src = src(cv::Rect(x_min-10,y_min-10,x_max-x_min+20,y_max-y_min+20));
-//    src = src(cv::Rect(box.top()-10,box.left()-10,box.bottom()-box.top()+10,box.right()-box.left()+10));
-
-    data["x_max"] = x_max;
-    data["y_max"] = y_max;
-    data["x_min"] = x_min;
-    data["y_min"] = y_min;
-
-//    cout << src.cols << " " << src.rows << endl;
-
-    return true;
+        return true;
+    }
+    else return false;
 }
 
+// Resize image into 100px wide
 float resizeImg(cv::Mat &src)
 {
     float rat = 100.0 / src.cols;
@@ -98,6 +85,7 @@ float resizeImg(cv::Mat &src)
     return rat;
 }
 
+// Draw an overlay on image as face detections with parts annotated using IBUG face landmark scheme.
 void cv_draw_arc(size_t start, size_t end, cv::Mat &src, dlib::full_object_detection shape)
 {
     for (size_t z = start; z <= end; ++z)
@@ -124,6 +112,8 @@ void cv_render_face_detection(cv::Mat &src, dlib::full_object_detection shape)
     cv::line(src, cv::Point(shape.part(60).x(),shape.part(60).y()), cv::Point(shape.part(67).x(),shape.part(67).y()), cv::Scalar(0,255,0));
 }
 
+
+// Overlay result image onto source
 void overlayImage(const cv::Mat &background, const cv::Mat &foreground, cv::Mat &output, cv::Point2i location)
 {
   background.copyTo(output);

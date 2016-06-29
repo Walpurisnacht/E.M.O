@@ -28,10 +28,6 @@ void eccentricities_calculator(full_object_detection shape, std::vector<double> 
 
 void linear_calculator(full_object_detection shape, std::vector<double> &result);
 
-//void feature_calculator_13(full_object_detection shape, std::vector<double> &result);
-
-//void feature_calculator_26(full_object_detection shape, std::string path, std::vector<double> &result);
-
 std::vector<double> feature_calculator(full_object_detection shape,std::string path);
 
 
