@@ -36,6 +36,12 @@ int main(int argc, char** argv)
 		// Load SVM model
 		struct svm_model* model = svm_load_model(argv[2]);
 
+        cv::VideoWriter outputVid;
+        cv::Size S = cv::Size((int) cap.get(CV_CAP_PROP_FRAME_WIDTH),
+        (int) cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+//				int ex = static_cast<int>(cap.get(CV_CAP_PROP_FOURCC));
+        outputVid.open(argv[5], CV_FOURCC('M','J','P','G'), cap.get(CV_CAP_PROP_FPS), S, true);
+
 		while (!win.is_closed())
 		{
 			cv::Mat temp;
@@ -139,16 +145,8 @@ int main(int argc, char** argv)
 			std::cout << dt << " " << result << std::endl;
 
 			cv_render_face_detection(temp, shapes[0]);
-			if (argv[4][0] == '1') {
-                cv::VideoWriter outputVid;
-				cv::Size S = cv::Size((int) cap.get(CV_CAP_PROP_FRAME_WIDTH),
-				(int) cap.get(CV_CAP_PROP_FRAME_HEIGHT));
-				int ex = static_cast<int>(cap.get(CV_CAP_PROP_FOURCC));
-				outputVid.open(argv[5], ex, cap.get(CV_CAP_PROP_FPS), S, true);
-				if (!outputVid.isOpened())
-                    continue;
-                outputVid << temp;
-            }
+
+
 
 			if (result == -1)
 				overlayImage(temp, cv::imread("sad.png",1), temp, cv::Point(0,0));
@@ -160,9 +158,11 @@ int main(int argc, char** argv)
 			win.clear_overlay();
 			win.set_image(cimg);
 
+			if (argv[5][0] == '1') outputVid << temp;
+
 //			win.add_overlay(render_face_detections(shapes));
 		}
-
+        outputVid.release();
 		delete model;
 	}
 	catch(serialization_error& e)
