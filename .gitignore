@@ -3,3 +3,9 @@
  - Rubbish/
  - src/sample/
  - src/cam_overlay_debug
+.debris/
+Rubbish/
+src/cam_overlay
+src/cam_overlay_debug
+src/sample/
+src/model.dat
