@@ -3,6 +3,8 @@
 #include "img_proc.h"
 #include "cam_overlay.h"
 
+
+
 int main(int argc, char** argv)
 {
     struct stat st;
@@ -11,13 +13,9 @@ int main(int argc, char** argv)
 	try
 	{
 		int cnt = 0;
+        arg_param app_arg;
 
-		if (argc == 1)
-		{
-			cout << "Call this program like this:" << endl;
-			cout << "[app] [face model] [svm model] [neutral.csv] [record] [save path]" << endl;
-			return 0;
-		}
+		parse_command_line(argc,argv,app_arg);
 
         // Set parameter for saving image in recording mode
         std::vector<int> compression_params;
@@ -31,16 +29,16 @@ int main(int argc, char** argv)
 		// Load face detection and pose estimation models.
         frontal_face_detector detector = get_frontal_face_detector();
         shape_predictor pose_model;
-        deserialize(argv[1]) >> pose_model;
+        deserialize(app_arg.face_model) >> pose_model;
 
 		// Load SVM model
-		struct svm_model* model = svm_load_model(argv[2]);
+		struct svm_model* model = svm_load_model(app_arg.svm_model);
 
-        cv::VideoWriter outputVid;
-        cv::Size S = cv::Size((int) cap.get(CV_CAP_PROP_FRAME_WIDTH),
-        (int) cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+//        cv::VideoWriter outputVid;
+//        cv::Size S = cv::Size((int) cap.get(CV_CAP_PROP_FRAME_WIDTH),
+//        (int) cap.get(CV_CAP_PROP_FRAME_HEIGHT));
 //				int ex = static_cast<int>(cap.get(CV_CAP_PROP_FOURCC));
-        outputVid.open(argv[5], CV_FOURCC('M','J','P','G'), cap.get(CV_CAP_PROP_FPS), S, true);
+//        outputVid.open(argv[5], CV_FOURCC('M','J','P','G'), cap.get(CV_CAP_PROP_FPS), S, true);
 
 		while (!win.is_closed())
 		{
@@ -70,19 +68,21 @@ int main(int argc, char** argv)
 
 			// Record mode, bypass prediction
 //			if (argv[4][0] == '1' && shapes.size() != 0)
-//			{
-//				if (stat(argv[5],&st) == -1) {
-//                    cout << "rm stat = " << system("rm -r ./save/") << endl;
-//					mkdir(argv[5], 0700);
-//				}
-//				win.clear_overlay();
-//				win.set_image(cimg);
-//				imwrite(argv[5] + to_string(static_cast<long long>(cnt)) + ".jpg", temp, compression_params);
-//				cout << "Writing frame " << cnt << " to " << argv[5] << endl;
-//				cnt++;
-//
-//				continue;
-//			}
+			if (app_arg.record && shapes.size() != 0)
+			{
+				if (stat(app_arg.rec_path,&st) == -1) {
+                    char* cmd = (char*)"rm -r";
+                    cout << "rm stat = " << system(strcat(cmd,app_arg.rec_path)) << endl;
+					mkdir(app_arg.rec_path, 0700);
+				}
+				win.clear_overlay();
+				win.set_image(cimg);
+				imwrite(app_arg.rec_path + to_string(static_cast<long long>(cnt)) + ".jpg", temp, compression_params);
+				cout << "Writing frame " << cnt << " to " << app_arg.rec_path << endl;
+				cnt++;
+
+				continue;
+			}
 
 			// Preprocess image
             cv::Mat proc;
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
 			cv_render_face_detection(proc, shape);
 
 			// Feature calculator from processed landmarks
-			std::vector<double> feature = feature_calculator(shape,argv[3]);
+			std::vector<double> feature = feature_calculator(shape,app_arg.neutral);
 
 			size_t n = feature.size()+1;
 
@@ -158,11 +158,11 @@ int main(int argc, char** argv)
 			win.clear_overlay();
 			win.set_image(cimg);
 
-			if (argv[5][0] == '1') outputVid << temp;
+//			if (argv[5][0] == '1') outputVid << temp;
 
 //			win.add_overlay(render_face_detections(shapes));
 		}
-        outputVid.release();
+//        outputVid.release();
 		delete model;
 	}
 	catch(serialization_error& e)

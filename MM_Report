@@ -29,7 +29,7 @@
 - Import libsvm model
 [DONE] - Test run
 [DONE] g++ -pg -g -O3 -std=c++11 -mavx -DDLIB_JPEG_SUPPORT -I /usr/include/ cam_overlay.cc feature_calculator.cc img_proc.cc /usr/include/dlib/all/source.cpp libsvm.a -o cam_overlay `pkg-config opencv --cflags --libs` -lpthread -lX11 -ljpeg
-[BUG] ROI problem
+[DONE] ROI problem
 
 //-----LIBSVM-----//
 [DONE] - Include svm source code (solution: object file?) = static library
