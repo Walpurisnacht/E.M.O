@@ -12,11 +12,17 @@ using namespace std;
 using namespace dlib;
 
 struct arg_param {
-    char* face_model = (char*)"model.dat";
-    char* svm_model = (char*)"600.model";
-    char* neutral = (char*)"neutral.csv";
-    char* rec_path = (char*)"./";
+//    char* face_model = (char*)"model.dat";
+//    char* svm_model = (char*)"600.model";
+//    char* neutral = (char*)"neutral.csv";
+    char* face_model;
+    char* svm_model;
+    char* neutral;
+    char* rec_path;
+    char* vid_path;
     bool record = false;
+    bool cam_input = true;
+    bool debug = false;
 };
 
 void exit_with_help()
@@ -24,14 +30,16 @@ void exit_with_help()
     cout << "Usage: ./cam_overlay [options]\n"
          << "Options:\n"
          << "-s : data in different locations, set path to [face_model] [svm_model] [neutral.csv]\n"
-         << "-r : toggle frame extractor, set path to save image\n"
-         << "Default: data in current working dir, no recording" << endl;
+         << "-r [path]: toggle frame extractor, set path to save image\n"
+         << "-v [path]: video input from path\n"
+         << "-a [path]: all data in [path]" << endl;
     exit(1);
 }
 
 void parse_command_line(int argc, char** argv, arg_param &app_arg)
 {
     int i;
+    std::string tmp;
     for (i = 1; i < argc; i++) {
         if (argv[i][0] != '-') break;
         if (++i >= argc) exit_with_help();
@@ -48,6 +56,30 @@ void parse_command_line(int argc, char** argv, arg_param &app_arg)
             case 'r':
                 app_arg.rec_path = argv[i];
                 app_arg.record = true;
+                break;
+
+            case 'v':
+                app_arg.cam_input = false;
+                app_arg.vid_path = argv[i];
+                break;
+
+            case 'a':
+                tmp = std::string(argv[i]) + "model.dat";
+                app_arg.face_model = strdup(tmp.c_str());
+                tmp = std::string(argv[i]) + "600.model";
+                app_arg.svm_model = strdup(tmp.c_str());
+                tmp = std::string(argv[i]) + "neutral.csv";
+                app_arg.neutral = strdup(tmp.c_str());
+                break;
+
+            case 'd':
+                app_arg.debug = true;
+                tmp = std::string(argv[i]) + "model.dat";
+                app_arg.face_model = strdup(tmp.c_str());
+                tmp = std::string(argv[i]) + "600.model";
+                app_arg.svm_model = strdup(tmp.c_str());
+                tmp = std::string(argv[i]) + "neutral.csv";
+                app_arg.neutral = strdup(tmp.c_str());
                 break;
 
             default:

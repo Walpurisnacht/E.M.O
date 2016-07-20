@@ -39,3 +39,7 @@ float resizeImg(cv::Mat &src);
 void overlayImage(const cv::Mat &background, const cv::Mat &foreground, cv::Mat &output, cv::Point2i location);
 
 bool checkShape(dlib::full_object_detection shape);
+
+long getMax(dlib::full_object_detection shape,bool x);
+
+long getMin(dlib::full_object_detection shape,bool x);

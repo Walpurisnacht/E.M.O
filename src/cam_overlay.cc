@@ -12,6 +12,7 @@ int main(int argc, char** argv)
 
 	try
 	{
+        cv::Mat supp;
 		int cnt = 0;
         arg_param app_arg;
 
@@ -22,8 +23,29 @@ int main(int argc, char** argv)
         compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);
         compression_params.push_back(100);
 
-        // Init camera + preview window
-		cv::VideoCapture cap(0);
+        // Init input source + preview window
+		cv::VideoCapture cap;
+		cv::VideoWriter exp;
+
+		if (app_arg.cam_input) cap.open(0); // 1st capture device
+		else {
+            cap.open(app_arg.vid_path); // Video path
+            cap.set(CV_CAP_PROP_FPS, 30); // Force webcam fps to 30
+            string source(app_arg.vid_path);
+            string::size_type pAt = source.find_last_of('.');
+            Size S = Size((int) cap.get(CV_CAP_PROP_FRAME_WIDTH),    // Acquire input size
+                  (int) cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+
+            const string NAME = source.substr(0, pAt) + "_proc.avi";
+            exp.open(NAME, CV_FOURCC('D','I','V','3'), cap.get(CV_CAP_PROP_FPS), S, true);
+        }
+
+        if (app_arg.debug) {
+            Size S = Size((int) cap.get(CV_CAP_PROP_FRAME_WIDTH),    // Acquire input size
+                      (int) cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+            exp.open("data.avi", CV_FOURCC('D','I','V','3'), cap.get(CV_CAP_PROP_FPS), S, true);
+        }
+
 		image_window win;
 
 		// Load face detection and pose estimation models.
@@ -44,6 +66,15 @@ int main(int argc, char** argv)
 		{
 			cv::Mat temp;
 			cap >> temp;
+
+			temp.copyTo(supp);
+
+			// In case of video input
+			if (!app_arg.cam_input && temp.empty()) {
+                cv::waitKey(0);
+                cv::destroyAllWindows();
+                break;
+			}
 
 			cv_image<bgr_pixel> cimg(temp);
 
@@ -71,8 +102,8 @@ int main(int argc, char** argv)
 			if (app_arg.record && shapes.size() != 0)
 			{
 				if (stat(app_arg.rec_path,&st) == -1) {
-                    char* cmd = (char*)"rm -r";
-                    cout << "rm stat = " << system(strcat(cmd,app_arg.rec_path)) << endl;
+                    std::string cmd = "rm -r" + std::string(app_arg.rec_path);
+                    cout << "rm stat = " << system(cmd.c_str()) << endl;
 					mkdir(app_arg.rec_path, 0700);
 				}
 				win.clear_overlay();
@@ -142,21 +173,29 @@ int main(int argc, char** argv)
 			double result = svm_predict(model,node);
 			time_t now = time(0);
 			char* dt = ctime(&now);
-			std::cout << dt << " " << result << std::endl;
 
 			cv_render_face_detection(temp, shapes[0]);
 
+            std::cout << "Frame rate: " << cap.get(CV_CAP_PROP_FPS) << endl;
 
-
-			if (result == -1)
+			if (result == -1) {
 				overlayImage(temp, cv::imread("sad.png",1), temp, cv::Point(0,0));
-			else if (result == 0)
+				std::cout << dt << " Predict: " << result << " (Negative)" << std::endl;
+            }
+			else if (result == 0) {
 				overlayImage(temp, cv::imread("normal.png",1), temp, cv::Point(0,0));
-			else if (result == 1)
+				std::cout << dt << " Predict: " << result << " (Neutral)" << std::endl;
+            }
+			else if (result == 1) {
 				overlayImage(temp, cv::imread("smile.png",1), temp, cv::Point(0,0));
+				std::cout << dt << " Predict: " << result << " (Positive)" << std::endl;
+            }
 
 			win.clear_overlay();
 			win.set_image(cimg);
+
+            if (app_arg.debug) exp << supp;
+            else exp << temp;
 
 //			if (argv[5][0] == '1') outputVid << temp;
 
@@ -175,5 +214,6 @@ int main(int argc, char** argv)
     catch(exception& e)
     {
         cout << e.what() << endl;
+        exit_with_help();
     }
 }

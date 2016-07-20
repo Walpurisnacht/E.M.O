@@ -45,19 +45,59 @@ std::vector<long> getVector(dlib::full_object_detection shape, bool x)
     return data;
 }
 
+long getMax(dlib::full_object_detection shape,bool x)
+{
+    long pts;
+    if (x) {
+        pts = shape.part(0).x();
+        for (int i = 1; i < 68; i++) {
+            if (shape.part(i).x() >= pts) pts = shape.part(i).x();
+        }
+        return pts;
+    } else {
+        pts = shape.part(0).y();
+        for (int i = 1; i < 68; i++) {
+            if (shape.part(i).y() >= pts) pts = shape.part(i).y();
+        }
+        return pts;
+    }
+}
+
+long getMin(dlib::full_object_detection shape,bool x)
+{
+    long pts;
+    if (x) {
+        pts = shape.part(0).x();
+        for (int i = 1; i < 68; i++) {
+            if (shape.part(i).x() <= pts) pts = shape.part(i).x();
+        }
+        return pts;
+    } else {
+        pts = shape.part(0).y();
+        for (int i = 1; i < 68; i++) {
+            if (shape.part(i).y() <= pts) pts = shape.part(i).y();
+        }
+        return pts;
+    }
+}
+
 // Crop the image based on landmark position, returning validation for processing further
 bool cropFace(cv::Mat &src, dlib::full_object_detection shape, std::map<std::string,long> &data)
 {
-    std::vector<long> x = getVector(shape, true);
-    std::vector<long> y = getVector(shape, false);
+//    std::vector<long> x = getVector(shape, true);
+//    std::vector<long> y = getVector(shape, false);
 
-    long x_max = *std::max_element(x.begin(), x.end(), comp);
-    long x_min = *std::min_element(x.begin(), x.end(), comp);
-    long y_max = *std::max_element(y.begin(), y.end(), comp);
-    long y_min = *std::min_element(y.begin(), y.end(), comp);
+//    long x_max = *std::max_element(x.begin(), x.end(), comp);
+//    long x_min = *std::min_element(x.begin(), x.end(), comp);
+//    long y_max = *std::max_element(y.begin(), y.end(), comp);
+//    long y_min = *std::min_element(y.begin(), y.end(), comp);
+    long x_max = getMax(shape, true);
+    long x_min = getMin(shape, true);
+    long y_max = getMax(shape, false);
+    long y_min = getMin(shape, false);
 
-    if (checkShape(shape))
-        return false;
+//    if (checkShape(shape))
+//        return false;
 
 	// Calculate Region of Interest with an offset of 10 px
     cv::Rect ROI(x_min-10,y_min-10,x_max-x_min+20,y_max-y_min+20);
@@ -73,15 +113,15 @@ bool cropFace(cv::Mat &src, dlib::full_object_detection shape, std::map<std::str
 
         return true;
     }
-    else return false;
+    return false;
 }
 
 // Resize image into 100px wide
 float resizeImg(cv::Mat &src)
 {
     float rat = 100.0 / src.cols;
-    cv::Size dim(100, (int) src.rows*rat);
-    cv::resize(src,src,dim);
+//    cv::Size dim(100, (int) src.rows*rat);
+    cv::resize(src,src,cv::Size(100, (int) src.rows*rat));
     return rat;
 }
 
