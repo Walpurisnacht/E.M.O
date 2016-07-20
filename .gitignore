@@ -5,3 +5,7 @@ src/cam_overlay_debug
 src/sample/
 src/model.dat
 paper/
+figure/
+sandbox/
+**/.*
+**/*.avi
