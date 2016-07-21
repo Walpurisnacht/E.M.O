@@ -9,3 +9,4 @@ figure/
 sandbox/
 **/.*
 **/*.avi
+build/

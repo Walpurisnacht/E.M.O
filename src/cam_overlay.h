@@ -27,7 +27,7 @@ struct arg_param {
 
 void exit_with_help()
 {
-    cout << "Usage: ./cam_overlay [options]\n"
+    cout << "Usage: ./emo [options]\n"
          << "Options:\n"
          << "-s : data in different locations, set path to [face_model] [svm_model] [neutral.csv]\n"
          << "-r [path]: toggle frame extractor, set path to save image\n"
@@ -72,6 +72,7 @@ void parse_command_line(int argc, char** argv, arg_param &app_arg)
                 app_arg.neutral = strdup(tmp.c_str());
                 break;
 
+            //Developer debug mode
             case 'd':
                 app_arg.debug = true;
                 tmp = std::string(argv[i]) + "model.dat";

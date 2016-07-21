@@ -1,13 +1,13 @@
 #include "img_proc.h"
 
 // Check if there is any negative value
-bool checkShape(dlib::full_object_detection shape)
-{
-    std::vector<dlib::point> data;
-    for (size_t i = 0; i < 68; i++)
-        data.push_back(shape.part(i));
-    return std::any_of(data.begin(), data.end(), any_comp);
-}
+//bool checkShape(dlib::full_object_detection shape)
+//{
+//    std::vector<dlib::point> data;
+//    for (size_t i = 0; i < 68; i++)
+//        data.push_back(shape.part(i));
+//    return std::any_of(data.begin(), data.end(), any_comp);
+//}
 
 // Calculate the point rotated by the rotation matrix
 void cv_rotatePoint(float angle, dlib::full_object_detection &shape, cv::Mat rot_mat)
@@ -32,18 +32,18 @@ float getAngle(dlib::point p0, dlib::point p1)
 }
 
 // Extract data from dlib::full_object_detection
-std::vector<long> getVector(dlib::full_object_detection shape, bool x)
-{
-    std::vector<long> data;
-    for (size_t i = 0; i < 68; i++)
-    {
-        if (x)
-            data.push_back(shape.part(i).x());
-        else
-            data.push_back(shape.part(i).y());
-    }
-    return data;
-}
+//std::vector<long> getVector(dlib::full_object_detection shape, bool x)
+//{
+//    std::vector<long> data;
+//    for (size_t i = 0; i < 68; i++)
+//    {
+//        if (x)
+//            data.push_back(shape.part(i).x());
+//        else
+//            data.push_back(shape.part(i).y());
+//    }
+//    return data;
+//}
 
 long getMax(dlib::full_object_detection shape,bool x)
 {

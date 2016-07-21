@@ -2,21 +2,31 @@ EMO Version 1.2
 ===============================
 
 -----Feature-----
-Recognize human's facial emotion through facial landmark.
-All emotions are categorized into 3 primal type: positive, neutral, negative
+* Recognize human's facial emotion through facial landmark.
+* All emotions are categorized into 3 primal type: positive, neutral, negative
+* Possible inputs are live webcam or video input
+
+-----Requirements-----
+* OpenCV 2.x is required. Follow these instructions to install:
+http://docs.opencv.org/2.4.13/doc/tutorials/introduction/linux_install/linux_install.html?highlight=install
+* dlib 18.18 is required. Download the source code from dlib.net and follow build tips to include dlib library in project. More information:
+http://dlib.net/compile.html
 
 -----Build tips-----
-- Include dlib source.cpp to compile dlib library (no static/shared lib in source code)
-- Include opencv through pkg-config
-- Enable AVX instructions for better performance
-
-Sample build: g++ -pg -g -O3 -std=c++11 -mavx -DDLIB_JPEG_SUPPORT -I /usr/include/ cam_overlay.cc feature_calculator.cc img_proc.cc /usr/include/dlib/all/source.cpp libsvm.a -o cam_overlay `pkg-config opencv --cflags --libs` -lpthread -lX11 -ljpeg
+* Run make to compile, by default dlib library is installed into root
+* In case of linking to dlib specific folder, fix source.cpp and include files location in makefile
+* Stand-alone build:
+g++ -O3 -std=c++11 -mavx -DDLIB_JPEG_SUPPORT -I [path to dlib include files] [source codes] [dlib source.cpp] libsvm.a -o emo `pkg-config opencv --cflags --libs` -lpthread -lx11 -ljpeg
 
 -----Usage-----
 Call the app like this
-./app [path to face model] [path to svm model] [path to neutral.csv] [record flag 0/1] [path to save img in record mode]
+./emo [options]
 
-EX: ./app ./model.dat ./pk.model ./neutral.csv 0
+Options:
+-s : data in different locations, set path to [face_model] [svm_model] [neutral.csv]
+-r [path]: toggle frame extractor, set path to save image
+-v [path]: video input from path
+-a [path]: all data in [path]
 
------Unsolved bug-----
-Throw exception in cv::VideoCapture when given a half face
+Example:
+./emo -a ~/EMO/src -r ~/EMO/save/

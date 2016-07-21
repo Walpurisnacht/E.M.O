@@ -3,17 +3,19 @@ CC := g++
 
 SRCDIR := src
 BUILDDIR := build
-TARGET := ./build/test
+TARGET := build/emo
 
 SRCEXT := cc
-#SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
+SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 
-SOURCES := $(shell find $(SRCDIR) -type f -name landmark.$(SRCEXT))
+#Link dlib's source.cpp
 SOURCES += /usr/include/dlib/all/source.cpp
 
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS := -ggdb -O3 -Wall -msse2 -DDLIB_JPEG_SUPPORT
-LIB := -lpthread -lX11 -ljpeg
+CFLAGS := -O3 -Wall -mavx -std=c++11 -DDLIB_JPEG_SUPPORT `pkg-config opencv --cflags`
+LIB := -lpthread -lX11 -ljpeg `pkg-config opencv --libs` $(SRCDIR)/libsvm.a
+
+#Link path to dlib include files
 INC := -I /usr/include/
 
 #Main target
@@ -30,6 +32,6 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 #Remove generated files
 clean:
 	@echo " Cleaning..."
-	@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(BUILDDIR) $(TARGET)
+	@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(TARGET)
 	
 .PHONY: clean

@@ -30,7 +30,7 @@ cv::Mat rotateImg(cv::Mat &src, float angle);
 
 float getAngle(dlib::point p0, dlib::point p1);
 
-std::vector<long> getVector(dlib::full_object_detection shape, bool x);
+//std::vector<long> getVector(dlib::full_object_detection shape, bool x);
 
 bool cropFace(cv::Mat &src, dlib::full_object_detection shape, std::map<std::string,long> &data);
 
@@ -38,7 +38,7 @@ float resizeImg(cv::Mat &src);
 
 void overlayImage(const cv::Mat &background, const cv::Mat &foreground, cv::Mat &output, cv::Point2i location);
 
-bool checkShape(dlib::full_object_detection shape);
+//bool checkShape(dlib::full_object_detection shape);
 
 long getMax(dlib::full_object_detection shape,bool x);
 
