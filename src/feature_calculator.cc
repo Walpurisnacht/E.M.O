@@ -64,7 +64,7 @@ std::vector<double> feature_calculator(full_object_detection shape,std::string p
     double modulus_vecaa = std::sqrt(vecaa.dot(vecaa));
 
     dlib::vector<double,2> vecbb(shape.part(57).x()-shape.part(51).x(),shape.part(57).y()-shape.part(51).y());
-//    double modulus_vecbb = std::sqrt(vecbb.dot(vecbb));
+    double modulus_vecbb = std::sqrt(vecbb.dot(vecbb));
 
     for (size_t i = 0; i < 9; i++)
     {
@@ -117,7 +117,7 @@ std::vector<double> feature_calculator(full_object_detection shape,std::string p
         dlib::vector<double,2> vec(cross(0)-shape.part(i).x(),cross(1)-shape.part(i).y());
         vec /= modulus_vecaa;
         double modulus_vec = std::sqrt(vec.dot(vec));
-        if (modulus_vec == 0) modulus_vec = 1;
+        if (modulus_vec == 0) modulus_vec == 1;
         double dot = vec.dot(vecaa);
         double cos_angle = dot/modulus_vec/modulus_vecaa;
         result.push_back(modulus_vec);

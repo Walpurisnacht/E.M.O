@@ -12,7 +12,8 @@ int main(int argc, char** argv)
 
 	try
 	{
-        cv::Mat supp;
+//        cv::Mat supp;///
+
 		int cnt = 0;
         arg_param app_arg;
 
@@ -23,11 +24,21 @@ int main(int argc, char** argv)
         compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);
         compression_params.push_back(100);
 
-        // Init input source + preview window
-		cv::VideoCapture cap;
-		cv::VideoWriter exp;
+        // Init camera + preview window
+//		cv::VideoCapture cap(0);
 
-		if (app_arg.cam_input) cap.open(0); // 1st capture device
+        cv::VideoCapture cap;///
+		cv::VideoWriter exp;///
+
+		image_window win;
+
+		///
+		if (app_arg.cam_input) {
+            cap.open(0); // 1st capture device
+//            cap.set(CV_CAP_PROP_FRAME_HEIGHT, 480);
+//            cap.set(CV_CAP_PROP_FRAME_WIDTH, 640);
+//            cap.set(CV_CAP_PROP_FPS, 30);
+        }
 		else {
             cap.open(app_arg.vid_path); // Video path
             cap.set(CV_CAP_PROP_FPS, 30); // Force webcam fps to 30
@@ -45,8 +56,7 @@ int main(int argc, char** argv)
                       (int) cap.get(CV_CAP_PROP_FRAME_HEIGHT));
             exp.open("data.avi", CV_FOURCC('D','I','V','3'), cap.get(CV_CAP_PROP_FPS), S, true);
         }
-
-		image_window win;
+        ///
 
 		// Load face detection and pose estimation models.
         frontal_face_detector detector = get_frontal_face_detector();
@@ -67,14 +77,7 @@ int main(int argc, char** argv)
 			cv::Mat temp;
 			cap >> temp;
 
-			temp.copyTo(supp);
-
-			// In case of video input
-			if (!app_arg.cam_input && temp.empty()) {
-                cv::waitKey(0);
-                cv::destroyAllWindows();
-                break;
-			}
+//			temp.copyTo(supp);
 
 			cv_image<bgr_pixel> cimg(temp);
 
@@ -86,10 +89,10 @@ int main(int argc, char** argv)
             for (unsigned long i = 0; i < faces.size(); ++i)
                 shapes.push_back(pose_model(cimg, faces[i]));
 
-            std::vector<full_object_detection> view = shapes;
+            //std::vector<full_object_detection> view = shapes;
 
 			// Only view source without detection
-			if (shapes.size() == 0)
+			if (shapes.size() == 0 || checkShape(shapes[0]))
 			{
 				win.clear_overlay();
 				win.set_image(cimg);
@@ -102,8 +105,8 @@ int main(int argc, char** argv)
 			if (app_arg.record && shapes.size() != 0)
 			{
 				if (stat(app_arg.rec_path,&st) == -1) {
-                    std::string cmd = "rm -r" + std::string(app_arg.rec_path);
-                    cout << "rm stat = " << system(cmd.c_str()) << endl;
+                    char* cmd = (char*)"rm -r";
+                    cout << "rm stat = " << system(strcat(cmd,app_arg.rec_path)) << endl;
 					mkdir(app_arg.rec_path, 0700);
 				}
 				win.clear_overlay();
@@ -173,37 +176,56 @@ int main(int argc, char** argv)
 			double result = svm_predict(model,node);
 			time_t now = time(0);
 			char* dt = ctime(&now);
+//			std::cout << dt << " " << result << std::endl;
 
 			cv_render_face_detection(temp, shapes[0]);
 
-            std::cout << "Frame rate: " << cap.get(CV_CAP_PROP_FPS) << endl;
 
-			if (result == -1) {
+
+//			if (result == -1)
+//				overlayImage(temp, cv::imread("sad.png",1), temp, cv::Point(0,0));
+//			else if (result == 0)
+//				overlayImage(temp, cv::imread("normal.png",1), temp, cv::Point(0,0));
+//			else if (result == 1)
+//				overlayImage(temp, cv::imread("smile.png",1), temp, cv::Point(0,0));
+
+            ///
+            if (result == -1) {
 				overlayImage(temp, cv::imread("sad.png",1), temp, cv::Point(0,0));
-				std::cout << dt << " Predict: " << result << " (Negative)" << std::endl;
+				printf("%s Predict: %d (Negative)\n",dt,(int)result);
+//				std::cout << dt << " Predict: " << result << " (Negative)" << std::endl;
             }
 			else if (result == 0) {
 				overlayImage(temp, cv::imread("normal.png",1), temp, cv::Point(0,0));
-				std::cout << dt << " Predict: " << result << " (Neutral)" << std::endl;
+				printf("%s Predict: %d (Neutral)\n",dt,(int)result);
+//				std::cout << dt << " Predict: " << result << " (Neutral)" << std::endl;
             }
 			else if (result == 1) {
 				overlayImage(temp, cv::imread("smile.png",1), temp, cv::Point(0,0));
-				std::cout << dt << " Predict: " << result << " (Positive)" << std::endl;
+				printf("%s Predict: %d (Positive)\n",dt,(int)result);
+//				std::cout << dt << " Predict: " << result << " (Positive)" << std::endl;
             }
+            ///
 
 			win.clear_overlay();
 			win.set_image(cimg);
 
-            if (app_arg.debug) exp << supp;
-            else exp << temp;
-
 //			if (argv[5][0] == '1') outputVid << temp;
 
 //			win.add_overlay(render_face_detections(shapes));
+
+            ///
+//            if (app_arg.debug) exp << supp;
+//			else exp << temp;
 		}
 //        outputVid.release();
 		delete model;
 	}
+	catch(serialization_error& e)
+    {
+        cout << endl << e.what() << endl;
+        exit_with_help();
+    }
     catch(exception& e)
     {
         cout << e.what() << endl;

@@ -32,6 +32,6 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 #Remove generated files
 clean:
 	@echo " Cleaning..."
-	@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(TARGET)
+	@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(TARGET) $(BUILDIR)/%.o
 	
 .PHONY: clean
